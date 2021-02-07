@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+
+<div w3-include-html="elements/header.html"></div>
+<div w3-include-html="elements/topnav-login.html"></div>
+
+<div class="row">
+
+
+    <form th:object="${user}" th:action="@{/process_register}" method="post">
+        <div class="container">
+            <h2 >Login Form</h2>
+            <label><b>Email</b></label>
+            <input th:field="*{email}" type="text" placeholder="Enter email">
+
+            <label ><b>First name</b></label>
+            <input th:field="*{firstName}" type="text" placeholder="Enter first name">
+
+            <label ><b>Second name</b></label>
+            <input th:field="*{lastName}" type="text" placeholder="Enter second name">
+
+            <label ><b>Password</b></label>
+            <input th:field="*{password}" type="password" placeholder="Enter Password">
+
+            <button type="submit">Sign up</button>
+        </div>
+
+
+        <form action="/">
+            <button type="submit" class="cancelbtn">Cancel</button>
+        </form>
+
+    </form>
+</div>
+
+
+<div w3-include-html="elements/footer.html"></div>
+
+<script>
+    w3.includeHTML();
+</script>
+
+</body>
+</html>
