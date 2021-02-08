@@ -1,32 +1,33 @@
 package com.blum.springbanking.models;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "users")
-public class User {
+public class User implements Serializable {
 	
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+
 	private Long id;
 	
-	@Column(nullable = false, unique = true, length = 45)
+
 	private String email;
 	
-	@Column(nullable = false, length = 64)
+
 	private String password;
 	
-	@Column(name = "first_name", nullable = false, length = 20)
+
 	private String firstName;
 	
-	@Column(name = "last_name", nullable = false, length = 20)
+
 	private String lastName;
 
+	private Role role;
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	public Long getId() {
 		return id;
 	}
@@ -34,7 +35,7 @@ public class User {
 	public void setId(Long id) {
 		this.id = id;
 	}
-
+	@Column(nullable = false, unique = true, length = 45)
 	public String getEmail() {
 		return email;
 	}
@@ -42,7 +43,7 @@ public class User {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-
+	@Column(nullable = false, length = 64)
 	public String getPassword() {
 		return password;
 	}
@@ -50,7 +51,7 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
+	@Column(name = "first_name", nullable = false, length = 20)
 	public String getFirstName() {
 		return firstName;
 	}
@@ -58,7 +59,7 @@ public class User {
 	public void setFirstName(String firstName) {
 		this.firstName = firstName;
 	}
-
+	@Column(name = "last_name", nullable = false, length = 20)
 	public String getLastName() {
 		return lastName;
 	}
@@ -66,7 +67,18 @@ public class User {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	
-	
-	
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@JoinColumn(name = "role_id")
+	public Role getRole()
+	{
+		return role;
+	}
+	public void setRole(Role role)
+	{
+		this.role = role;
+	}
+
+
+
 }

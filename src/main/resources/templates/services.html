@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery.payment/1.0.1/jquery.payment.min.js'></script>
+    <script type="text/javascript" src="../static/js/cc-formatting.js"></script>
+    <script type="text/javascript" src="../static/js/form.js"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+
+<div w3-include-html="elements/header.html"></div>
+<div w3-include-html="elements/topnav-user.html"></div>
+
+<div class="row">
+    <div class="leftblock">
+        <div class="card">
+
+        </div>
+    </div>
+    <div class="rightblock">
+        <div class="card" >
+            <h2>Payment</h2></br>
+            <form action="/payment">
+                <label>Pay</label>
+                <select name="service" >
+                    <option value="debt">Debts</option>
+                    <option value="comunalka">Comunalka</option>
+                </select>
+
+                <label>By</label>
+                <select name="cardBy" >
+                    <option data-th-each="card : ${cardList}" data-th-text="${card.getCardNumber()}"></option>
+                </select>
+
+                <input type="submit" value="Submit" placeholder="Transfer">
+            </form>
+        </div>
+    </div>
+</div>
+
+<div w3-include-html="elements/footer.html"></div>
+
+<script>
+    w3.includeHTML();
+</script>
+
+</body>
+</html>

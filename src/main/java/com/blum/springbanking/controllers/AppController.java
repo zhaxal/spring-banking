@@ -1,9 +1,13 @@
-package com.blum.springbanking;
+package com.blum.springbanking.controllers;
 
+import com.blum.springbanking.CustomUserDetails;
 import com.blum.springbanking.models.Card;
 import com.blum.springbanking.models.User;
 import com.blum.springbanking.repository.CardRepository;
 import com.blum.springbanking.repository.UserRepository;
+import com.blum.springbanking.service.CardService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 public class AppController {
@@ -25,107 +30,89 @@ public class AppController {
 
 	@Autowired
 	private CardRepository cardRepo;
+
+	@Autowired
+	private CardService cardService;
+
+	Logger logger = LoggerFactory.getLogger(AppController.class);
 	
 	@GetMapping("")
 	public String viewHomePage() {
+		logger.info("Index page visited");
 		return "index";
 	}
 	
 	@GetMapping("/register")
 	public String showRegistrationForm(Model model) {
 		model.addAttribute("user", new User());
-		
+		logger.info("Registration page visited");
 		return "registration";
 	}
 
 	@GetMapping("/login")
 	public String showRegistrationForm() {
+		logger.info("Login page visited");
 		return "login";
 	}
 
 	@GetMapping("/mybank")
 	public String showMyBank(Model model) {
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-		long userId = user.getId();
-
-		double balance = 0;
-
-		ArrayList<Card> cardList = new ArrayList<>();
-		for (Card card: cardRepo.findAll()) {
-			if (card.getUser_id() == userId){
-				cardList.add(card);
-				balance = balance + card.getMoney();
-			}
-			System.out.println(card.toString());
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+			long userId = user.getId();
+			double balance = cardService.getBalance();
+			ArrayList<Card> cardList = cardService.getUserCardList(userId).get();
+			model.addAttribute("balance", balance);
+			model.addAttribute("cardList", cardList);
+			logger.info("My bank page visited");
+			logger.info("User balance loaded");
+			logger.info("User cards loaded");
+		} catch (Exception e){
+			logger.error(e.getMessage(),e);
 		}
 
-		model.addAttribute("balance",balance);
-		model.addAttribute("cardList",cardList);
+
 
 
 		return "my-bank";
 	}
 	@GetMapping("/transfers")
 	public String showTransfers(Model model) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-		long userId = user.getId();
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+			long userId = user.getId();
 
-		ArrayList<Card> cardList = new ArrayList<>();
-		ArrayList<Card> allCardList = new ArrayList<>();
-		for (Card card: cardRepo.findAll()) {
-			if (card.getUser_id() == userId){
-				cardList.add(card);
-			}
-			if (card.getUser_id() != userId){
-				allCardList.add(card);
-			}
-			System.out.println(card.toString());
+			ArrayList<Card> cardList = cardService.getUserCardList(userId).get();
+			ArrayList<Card> allCardList = cardService.getCardList(userId).get();
+
+			model.addAttribute("allList", allCardList);
+			model.addAttribute("cardList", cardList);
+			logger.info("Transfers page visited");
+			logger.info("User cards loaded");
+		} catch (Exception e){
+			logger.error(e.getMessage(),e);
 		}
-		model.addAttribute("allList",allCardList);
-		model.addAttribute("cardList",cardList);
 		return "transfer-page";
 	}
 	
 	@PostMapping("/process_register")
 	public String processRegister(User user) {
+		try{
 		BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		String encodedPassword = passwordEncoder.encode(user.getPassword());
 		user.setPassword(encodedPassword);
 
 		userRepo.save(user);
-
+		logger.info("");
+		} catch (Exception e){
+			logger.error(e.getMessage(),e);
+		}
 		return "index";
 	}
 
-	@GetMapping("/createcard") // Map ONLY POST Requests
-	public String addNewCard () {
-		long leftLimit = 100000000000L;
-		long rightLimit = 999999999999L;
-		long cardNumber = leftLimit + (long) (Math.random() * (rightLimit - leftLimit));
-		cardNumber = cardNumber + 5530000000000000L;
 
-		Random rand = new Random();
-		int cvc = rand.nextInt(999);
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-		long userId = user.getId();
-
-
-		Card card = new Card();
-		card.setCardCVC(cvc);
-		card.setCardNumber(cardNumber);
-		card.setMoney(0);
-		card.setUser_id((int) userId);
-		System.out.println(card.toString());
-
-		cardRepo.save(card);
-
-		return "index";
-	}
 
 
 	@GetMapping("/topup")
@@ -163,26 +150,52 @@ public class AppController {
 
 
 	@GetMapping("/tousercard")
-	public String toUserCard(@RequestParam(name="cardfrom") long cardFrom, @RequestParam(name="cardTo") long cardTo, @RequestParam(name="addMoney") double addMoney, Model model) {
+	public String toUserCard(@RequestParam(name="cardfrom") long cardFrom, @RequestParam(name="addMoney") double addMoney, Model model) {
 		Card from = cardRepo.findCardByCardNumber(cardFrom).get();
-		Card to = cardRepo.findCardByCardNumber(cardTo).get();
 
-		cardRepo.delete(to);
 		cardRepo.delete(from);
 
 		addMoney = addMoney - addMoney/100;
 
 		double fromint = from.getMoney()-addMoney;
-		double tint = to.getMoney()+addMoney;
 
 		from.setMoney(fromint);
-		to.setMoney(tint);
 
 		System.out.println(from.toString());
-		System.out.println(to.toString());
-
-		cardRepo.save(to);
 		cardRepo.save(from);
+		return "index";
+	}
+
+	@GetMapping("/services")
+	public String services(Model model) throws ExecutionException, InterruptedException {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+		long userId = user.getId();
+
+		ArrayList<Card> cardList = cardService.getUserCardList(userId).get();
+
+		model.addAttribute("cardList",cardList);
+
+		return "services";
+	}
+
+	@GetMapping("/payment")
+	public String payment(@RequestParam(name="cardBy") long cardBy, @RequestParam(name="service") String service, Model model) {
+		Card by = cardRepo.findCardByCardNumber(cardBy).get();
+
+		cardRepo.delete(by);
+		double payment = 0;
+		payment = payment + by.getMoney();
+		if (service == "debt"){
+			payment = payment - 10000;
+		}
+		if (service == "comunalka"){
+			payment = payment - 5000;
+		}
+		by.setMoney(payment);
+
+		System.out.println(by.toString());
+		cardRepo.save(by);
 		return "index";
 	}
 }

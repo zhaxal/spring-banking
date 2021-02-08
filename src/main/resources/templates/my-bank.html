@@ -7,6 +7,14 @@
     <script type="text/javascript" th:src="@{/js/cc-formatting.js}"></script>
     <script type="text/javascript" th:src="@{/js/form.js}"></script>
     <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <script>
+        function createCard() {
+            $.ajax({
+                url: "http://localhost:8080/createcard"
+            })
+        }
+
+    </script>
 </head>
 <body>
 
@@ -20,14 +28,15 @@
             <div th:text="${balance}"></div>
         </div>
         <div class="card">
-            <input type="button" value="Payment services" >
+            <input type="button" value="Payment services" onclick="window.location='/services';" >
+            <input type="button" value="Change password" onclick="window.location='/reset_password';" >
         </div>
     </div>
     <div class="rightblock">
         <div class="card">
-            <form action="/createcard">
+            <form>
                 <label>Create your card</label>
-                <input type="submit" value="Submit" placeholder="Create">
+                <input onclick="createCard()" type="submit" value="Submit" placeholder="Create">
             </form>
         </div>
         <div class="card" >
@@ -37,6 +46,7 @@
             <select name="cardNumber" >
                 <option data-th-each="card : ${cardList}" data-th-text="${card.getCardNumber()}"></option>
             </select>
+                <label>Enter amount</label>
                 <input type="number" name="addMoney">
                 <input type="submit" value="Submit" placeholder="Top up">
             </form>

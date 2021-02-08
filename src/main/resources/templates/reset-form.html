@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+
+>
+<head>
+    <script src="https://www.w3schools.com/lib/w3.js"></script>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<script>
+    function checkPasswordMatch(fieldConfirmPassword) {
+        if (fieldConfirmPassword.value !== $("#password").val()) {
+            fieldConfirmPassword.setCustomValidity("Passwords do not match!");
+        } else {
+            fieldConfirmPassword.setCustomValidity("");
+        }
+    }
+</script>
+<body>
+
+<div w3-include-html="elements/header.html"></div>
+<div w3-include-html="elements/topnav-login.html"></div>
+
+<div class="row">
+
+
+    <form th:action="@{/reset_password}" method="post">
+        <div class="container">
+            <h2 >Reset your password</h2></br>
+            <label><b>New password</b></label>
+            <input type="password" name="password" class="form-control"
+                   placeholder="Enter your new password" required autofocus />
+            <label><b>Confirm</b></label>
+            <input type="password" class="form-control" placeholder="Confirm your new password"
+                   required oninput="checkPasswordMatch(this);" />
+
+            <button type="submit">Reset</button>
+        </div>
+    </form>
+</div>
+
+
+<div w3-include-html="elements/footer.html"></div>
+
+<script>
+    w3.includeHTML();
+</script>
+
+</body>
+</html>

@@ -16,6 +16,7 @@ public interface CardRepository extends CrudRepository<Card, Long> {
     Iterable<Card> findAll();
 
     Optional<Card> findCardByCardNumber(long cardNumber);
+    
 
 
 }
